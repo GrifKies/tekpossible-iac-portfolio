@@ -4,22 +4,22 @@
 # TekPossible Defense Networks is a project to showcase my skills, and is in no way a real defense contractor!
 
 Resources:
-  usw2devrhel9:
+  use2devrhel9:
     Type: 'AWS::EC2::Instance'
     Properties:
-      KeyName: usw2-tekp-dev-el9
+      KeyName: use2-tekp-dev-el9
       DisableApiTermination: true
       ImageId: ami-030878695a26b4560 # This is the AMI that I premade. Enventually we will run a pre-CloudFormation ansible playbook that will make this AMI for us...
       InstanceType: t2.micro
       Monitoring: true
-      SecurityGroupIds: !Ref usw2devrhel9sg
+      SecurityGroupIds: !Ref use2devrhel9sg
       UserData: !Base64 |
         #!/bin/bash 
         echo 'L Bozo!' /usr/you_suck.txt
       Tags:
         - Key: infrastructure_as_code
           Value: aws-cloudformation
-  usw2tekpdevigw:
+  use2tekpdevigw:
     Type: 'AWS::EC2::InternetGateway'
     Properties:
       Tags:
@@ -29,11 +29,11 @@ Resources:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
       VpcId: vpc-id
-      InternetGatewayId: !Ref usw2tekpdevigw
-  usw2devrhel9sg:
+      InternetGatewayId: !Ref use2tekpdevigw
+  use2devrhel9sg:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupName: usw2-tekpdev-el9sg
+      GroupName: use2-tekpdev-el9sg
       GroupDescription: TEKP RHEL 9 Development Security Group
       VpcId: null
       SecurityGroupIngress:
