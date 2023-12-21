@@ -1,46 +1,57 @@
-# CloudFormation Resources Definition for TekPossible Defense Networks.
-# Part 1: Development Network (Additional security besides that in the AMI will be enforced via ansible/puppet after cloud formation)
-# Property of Griffin Kiesecker, grifkies@protonmail.com
-# TekPossible Defense Networks is a project to showcase my skills, and is in no way a real defense contractor!
-
+AWSTemplateFormatVersion: 2010-09-09
 Resources:
-  use2devrhel9:
-    Type: 'AWS::EC2::Instance'
+  TekPossibleVPC:
+    Type: AWS::EC2::VPC
     Properties:
-      KeyName: use2-tekp-dev-el9
-      DisableApiTermination: true
-      ImageId: ami-030878695a26b4560 # This is the AMI that I premade. Enventually we will run a pre-CloudFormation ansible playbook that will make this AMI for us...
-      InstanceType: t2.micro
-      Monitoring: true
-      SecurityGroupIds: !Ref use2devrhel9sg
-      UserData: !Base64 |
-        #!/bin/bash 
-        echo 'L Bozo!' /usr/you_suck.txt
+      CidrBlock: 10.84.0.0/16
+      EnableDnsSupport: true
       Tags:
-        - Key: infrastructure_as_code
-          Value: aws-cloudformation
-  use2tekpdevigw:
-    Type: 'AWS::EC2::InternetGateway'
+        - Key: aws_iac_generated
+          Value: cloudformation
+        - Key: Name
+          Value: TekPossibleVPC
+  TekPossibleDevelopment:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-2a
+      VpcId: !Ref TekPossibleVPC
+      CidrBlock: 10.84.68.0/24
+      Tags:
+        - Key: aws_iac_generated
+          Value: cloudformation
+        - Key: Name
+          Value: TekPossibleDevelopmentSubnet
+  TekPossibleTest:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-2a
+      VpcId: !Ref TekPossibleVPC
+      CidrBlock: 10.84.84.0/24
+      Tags:
+        - Key: aws_iac_generated
+          Value: cloudformation
+        - Key: Name
+          Value: TekPossibleTestSubnet
+  TekPossibleProduction: # This is our only public subnet
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-2a
+      VpcId: !Ref TekPossibleVPC
+      CidrBlock: 10.84.80.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws_iac_generated
+          Value: cloudformation
+        - Key: Name
+          Value: TekPossibleProductionSubnet
+  TekPossibleIGW:
+    Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
-        - Key: infrastructure_as_code
-          Value: aws-cloudformation
+        - Key: Name
+          Value: TekPossibleIGW
   AttachGateway:
-    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: vpc-id
-      InternetGatewayId: !Ref use2tekpdevigw
-  use2devrhel9sg:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      GroupName: use2-tekpdev-el9sg
-      GroupDescription: TEKP RHEL 9 Development Security Group
-      VpcId: null
-      SecurityGroupIngress:
-        - !ref <ingress here>
-      SecurityGroupEgress:
-        - !ref <egress here>
-      Tags:
-        - Key: infrastructure_as_code
-          Value: aws-cloudformation
-
+      VpcId: !Ref TekPossibleVPC
+      InternetGatewayId: !Ref TekPossibleIGW
