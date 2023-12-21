@@ -10,6 +10,7 @@ Resources:
           Value: cloudformation
         - Key: Name
           Value: TekPossibleVPC
+
   TekPossibleDevelopment:
     Type: AWS::EC2::Subnet
     Properties:
@@ -21,6 +22,7 @@ Resources:
           Value: cloudformation
         - Key: Name
           Value: TekPossibleDevelopmentSubnet
+
   TekPossibleTest:
     Type: AWS::EC2::Subnet
     Properties:
@@ -32,7 +34,8 @@ Resources:
           Value: cloudformation
         - Key: Name
           Value: TekPossibleTestSubnet
-  TekPossibleProduction: # This is our only public subnet
+
+  TekPossibleProduction:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: us-east-2a
@@ -44,14 +47,71 @@ Resources:
           Value: cloudformation
         - Key: Name
           Value: TekPossibleProductionSubnet
+
   TekPossibleIGW:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
           Value: TekPossibleIGW
+
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref TekPossibleVPC
       InternetGatewayId: !Ref TekPossibleIGW
+
+  TekPossibleVPCRouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TekPossibleVPC
+
+  TekPossiblePublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref TekPossibleVPCRouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref TekPossibleIGW
+
+  TekPossibleVPCRouteTablePublicAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref TekPossibleProduction
+      RouteTableId: !Ref TekPossibleVPCRouteTablePublic
+
+  TekPossibleNATGWEIP:    
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: !Ref TekPossibleVPC
+
+  TekPossibleNATGW:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt TekPossibleNATGWEIP.AllocationId # WACK
+      ConnectivityType: public
+      PrivateIpAddress: 10.84.80.2
+      SubnetId: !Ref TekPossibleProduction
+
+  TekPossibleVPCRouteTablePrivate:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TekPossibleVPC
+
+  TekPossiblePrivateDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref TekPossibleVPCRouteTablePrivate
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref TekPossibleNATGW
+
+  TekPossibleVPCRouteTablePrivateDevAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref TekPossibleDevelopment
+      RouteTableId: !Ref TekPossibleVPCRouteTablePrivate
+
+  TekPossibleVPCRouteTablePrivateTestAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref TekPossibleTest
+      RouteTableId: !Ref TekPossibleVPCRouteTablePrivate
