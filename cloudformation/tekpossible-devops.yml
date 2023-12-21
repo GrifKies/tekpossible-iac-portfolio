@@ -6,8 +6,6 @@ Resources:
       CidrBlock: 10.84.0.0/16
       EnableDnsSupport: true
       Tags:
-        - Key: aws_iac_generated
-          Value: cloudformation
         - Key: Name
           Value: TekPossibleVPC
 
@@ -18,8 +16,6 @@ Resources:
       VpcId: !Ref TekPossibleVPC
       CidrBlock: 10.84.68.0/24
       Tags:
-        - Key: aws_iac_generated
-          Value: cloudformation
         - Key: Name
           Value: TekPossibleDevelopmentSubnet
 
@@ -30,8 +26,6 @@ Resources:
       VpcId: !Ref TekPossibleVPC
       CidrBlock: 10.84.84.0/24
       Tags:
-        - Key: aws_iac_generated
-          Value: cloudformation
         - Key: Name
           Value: TekPossibleTestSubnet
 
@@ -43,8 +37,6 @@ Resources:
       CidrBlock: 10.84.80.0/24
       MapPublicIpOnLaunch: true
       Tags:
-        - Key: aws_iac_generated
-          Value: cloudformation
         - Key: Name
           Value: TekPossibleProductionSubnet
 
@@ -93,6 +85,9 @@ Resources:
       AllocationId: !GetAtt TekPossibleNATGWEIP.AllocationId # WACK
       ConnectivityType: public
       SubnetId: !Ref TekPossibleProduction
+      Tags:
+        - Key: Name
+          Value: TekPossibleNATGW
 
   TekPossibleVPCRouteTablePrivate:
     Type: AWS::EC2::RouteTable
