@@ -83,13 +83,15 @@ Resources:
     Type: AWS::EC2::EIP
     Properties:
       Domain: !Ref TekPossibleVPC
+      Tags:
+        - Key: Name
+          Value: TekPossibleNATGWEIP
 
   TekPossibleNATGW:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt TekPossibleNATGWEIP.AllocationId # WACK
       ConnectivityType: public
-      PrivateIpAddress: 10.84.80.2
       SubnetId: !Ref TekPossibleProduction
 
   TekPossibleVPCRouteTablePrivate:
