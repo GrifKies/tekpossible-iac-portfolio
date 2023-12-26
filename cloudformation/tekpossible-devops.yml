@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
+  # Network Resouce Definitions 
   TekPossibleVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -112,3 +113,73 @@ Resources:
     Properties:
       SubnetId: !Ref TekPossibleTest
       RouteTableId: !Ref TekPossibleVPCRouteTablePrivate
+
+  # Development Resource Definitions
+  TekPossibleDevEC2MattermostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: TekPossibleDevEC2MattermostSecurityGroup
+      GroupDescription: Security Group for Mattermost Development Instance
+      VpcId: !Ref TekPossibleVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp # SSH
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.84.68.0/24
+
+        - IpProtocol: tcp  # HTTP
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.84.68.0/24
+
+        - IpProtocol: tcp # HTTPS-MATTERMOST
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.84.68.0/24
+
+        - IpProtocol: tcp # HTTPS-MGMT-CONSOLE
+          FromPort: 8065
+          ToPort: 8065
+          CidrIp: 10.84.68.0/24
+
+  TekPossibleDevEC2TailscaleSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: TekPossibleDevEC2TailscaleSecurityGroup
+      GroupDescription: Security Group for Tailscale VPN Development Acces
+      VpcId: !Ref TekPossibleVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp # SSH
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.84.68.0/24
+
+  TekPossibleDevEC2Mattermost:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: ansible-keypair # TODO: NEED TO MAKE THIS A PARAMETER
+      DisableApiTermination: false
+      ImageId: ami-0d863285841e3f97c # TODO: NEED TO MAKE THIS A PARAMETER
+      InstanceType: t4g.medium
+      Monitoring: true
+      SubnetId: !Ref TekPossibleDevelopment
+      SecurityGroupIds:
+        - !Ref TekPossibleDevEC2MattermostSecurityGroup
+      Tags:
+        - Key: Name
+          Value: TekPossibleDevEC2Mattermost
+
+  TekPossibleDevEC2Tailscale:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: ansible-keypair # TODO: NEED TO MAKE THIS A PARAMETER
+      DisableApiTermination: false
+      ImageId: ami-0ef50c2b2eb330511 # TODO: NEED TO MAKE THIS A PARAMETER
+      InstanceType: t2.micro
+      Monitoring: true
+      SubnetId: !Ref TekPossibleDevelopment
+      SecurityGroupIds:
+        - !Ref TekPossibleDevEC2TailscaleSecurityGroup
+      Tags:
+        - Key: Name
+          Value: TekPossibleDevEC2Tailscale
