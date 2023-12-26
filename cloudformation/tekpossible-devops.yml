@@ -114,7 +114,7 @@ Resources:
       SubnetId: !Ref TekPossibleTest
       RouteTableId: !Ref TekPossibleVPCRouteTablePrivate
 
-  # Development Resource Definitions
+  # Development Compute Resource Definitions
   TekPossibleDevEC2MattermostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -142,11 +142,11 @@ Resources:
           ToPort: 8065
           CidrIp: 10.84.68.0/24
 
-  TekPossibleDevEC2TailscaleSecurityGroup:
+  TekPossibleDevEC2SSHOnlySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: TekPossibleDevEC2TailscaleSecurityGroup
-      GroupDescription: Security Group for Tailscale VPN Development Acces
+      GroupName: TekPossibleDevEC2SSHOnlySecurityGroup
+      GroupDescription: Security Group for EC2 with only SSH Access
       VpcId: !Ref TekPossibleVPC
       SecurityGroupIngress:
         - IpProtocol: tcp # SSH
@@ -154,13 +154,25 @@ Resources:
           ToPort: 22
           CidrIp: 10.84.68.0/24
 
+  TekPossibleDevRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: TekPossibleDevRDSSecurityGroup
+      GroupDescription: Security Group for RDS Database Development Access
+      VpcId: !Ref TekPossibleVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp # SSH
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 10.84.68.0/24
+
   TekPossibleDevEC2Mattermost:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: ansible-keypair # TODO: NEED TO MAKE THIS A PARAMETER
       DisableApiTermination: false
-      ImageId: ami-0d863285841e3f97c # TODO: NEED TO MAKE THIS A PARAMETER
-      InstanceType: t4g.medium
+      ImageId: ami-0ef50c2b2eb330511 # TODO: NEED TO MAKE THIS A PARAMETER
+      InstanceType: t3.large
       Monitoring: true
       SubnetId: !Ref TekPossibleDevelopment
       SecurityGroupIds:
@@ -178,8 +190,51 @@ Resources:
       InstanceType: t2.micro
       Monitoring: true
       SubnetId: !Ref TekPossibleDevelopment
+      # UserData: !Base64 | # TODO: NEED TO FIGURE OUT HOw TO SCRIPT THE TAILSCALE INSTALL
+      #   #!/bin/bash -ex
+      #   # put your script here
       SecurityGroupIds:
-        - !Ref TekPossibleDevEC2TailscaleSecurityGroup
+        - !Ref TekPossibleDevEC2SSHOnlySecurityGroup
       Tags:
         - Key: Name
           Value: TekPossibleDevEC2Tailscale
+
+  TekPossibleDevEC2IaC:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: ansible-keypair # TODO: NEED TO MAKE THIS A PARAMETER
+      DisableApiTermination: false
+      ImageId: ami-0ef50c2b2eb330511 # TODO: NEED TO MAKE THIS A PARAMETER
+      InstanceType: t2.micro
+      Monitoring: true
+      SubnetId: !Ref TekPossibleDevelopment
+      # UserData: !Base64 | # TODO: NEED TO FIGURE OUT HOw TO SCRIPT THE ANSIBLE/COLLECTIONS INSTALL
+      #   #!/bin/bash -ex
+      #   # put your script here
+      SecurityGroupIds:
+        - !Ref TekPossibleDevEC2SSHOnlySecurityGroup
+      Tags:
+        - Key: Name
+          Value: TekPossibleDevEC2IaC
+TekPossibleDevelopmentMattermostDB:
+  Type: AWS::RDS::DBInstance
+  Properties:
+    AllocatedStorage: 100 # TODO: Parameterize this
+    DBInstanceClass: db.m5.large # This is the smallest instance for RDS
+    AllowMajorVersionUpgrade: true
+    AutoMinorVersionUpgrade: true
+    BackupRetentionPeriod: 7 # Backed up for 1 week
+    CharacterSetName: utf8 # We will see if this works
+    DBName: TekPossibleDevelopmentMattermostDB
+    DBSubnetGroupName: !Ref TekPossibleDevelopment
+    Engine: postgres
+    LicenseModel: postgresql-license
+    MasterUsername: postgres
+    MasterUserSecret: <SOMETHING> # TODO: Figure out how to do this (most likely will be handled by ansible in the predeploy script)
+    MultiAZ: false
+    Port: 3306
+    PubliclyAccessible: false
+    StorageEncrypted: true
+    StorageType: gp2
+    VPCSecurityGroups:
+      - !Ref TekPossibleDevRDSSecurityGroup
