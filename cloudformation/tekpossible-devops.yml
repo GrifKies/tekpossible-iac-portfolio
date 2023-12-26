@@ -216,25 +216,26 @@ Resources:
       Tags:
         - Key: Name
           Value: TekPossibleDevEC2IaC
-TekPossibleDevelopmentMattermostDB:
-  Type: AWS::RDS::DBInstance
-  Properties:
-    AllocatedStorage: 100 # TODO: Parameterize this
-    DBInstanceClass: db.m5.large # This is the smallest instance for RDS
-    AllowMajorVersionUpgrade: true
-    AutoMinorVersionUpgrade: true
-    BackupRetentionPeriod: 7 # Backed up for 1 week
-    CharacterSetName: utf8 # We will see if this works
-    DBName: TekPossibleDevelopmentMattermostDB
-    DBSubnetGroupName: !Ref TekPossibleDevelopment
-    Engine: postgres
-    LicenseModel: postgresql-license
-    MasterUsername: postgres
-    MasterUserSecret: <SOMETHING> # TODO: Figure out how to do this (most likely will be handled by ansible in the predeploy script)
-    MultiAZ: false
-    Port: 3306
-    PubliclyAccessible: false
-    StorageEncrypted: true
-    StorageType: gp2
-    VPCSecurityGroups:
-      - !Ref TekPossibleDevRDSSecurityGroup
+
+  TekPossibleDevelopmentMattermostDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 100 # TODO: Parameterize this
+      DBInstanceClass: db.m5.large # This is the smallest instance for RDS
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: 7 # Backed up for 1 week
+      CharacterSetName: utf8 # We will see if this works
+      DBName: TekPossibleDevelopmentMattermostDB
+      DBSubnetGroupName: !Ref TekPossibleDevelopment
+      Engine: postgres
+      LicenseModel: postgresql-license
+      MasterUsername: postgres
+      MasterUserSecret: <SOMETHING> # TODO: Figure out how to do this (most likely will be handled by ansible in the predeploy script)
+      MultiAZ: false
+      Port: 3306
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref TekPossibleDevRDSSecurityGroup
