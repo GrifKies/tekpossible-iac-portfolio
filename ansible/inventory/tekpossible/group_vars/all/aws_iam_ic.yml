@@ -1,9 +1,16 @@
-# AWS IAM Identity Center Groupi
-aws_iam_ic_idstore_id: "d-9a670fab47"
-aws_iam_ic_arn: 'arn:aws:sso:::instance/ssoins-6684ee03906c3223'
+# AWS IAM Identity Center Configuration
 aws_iam_ic_groups: 
-  - "TekPossible Administrators"
-  - "TekPossible Auditors"
-  - "TekPossible Bursars"
-  - "TekPossible Developers - GEODE"
-  - "TekPossible Developers - GLOBALGRIFFIN"
+  - {name: "TekPossible Administrators", permissionset: "TekPossibleAdmins"}
+  - {name: "TekPossible Auditors", permissionset: "TekPossibleAuditors"}
+  - {name: "TekPossible Accounting", permissionset: "TekPossibleFinance"}
+  - {name: "TekPossible Developers - GEODE", permissionset: "TekPossibleDevsGEODE"}
+  - {name: "TekPossible Developers - GEODE Leads", permissionset: "TekPossibleDevsGEODE"}
+  - {name: "TekPossible Developers - GLOBALGRIFFIN", permissionset: "TekPossibleDevsGG"}
+  - {name: "TekPossible Developers - GLOBALGRIFFIN Leads", permissionset: "TekPossibleDevsGG"}
+
+aws_iam_ic_permission_sets: 
+  - {name: "TekPossibleAdmins", description: "TekPossible Administrators Permission Set", sessiontime: "PT9H", role_arn: "arn:aws:iam::aws:policy/AdministratorAccess"}
+  - {name: "TekPossibleDevsGEODE", description: "TekPossible Developers (GEODE) Permission Set", sessiontime: "PT9H", role_arn: "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"}
+  - {name: "TekPossibleDevsGG", description: "TekPossible Developers (GlobalGriffin) Permission Set", sessiontime: "PT9H", role_arn: "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"}
+  - {name: "TekPossibleAuditors", description: "TekPossible Cybersecurity Auditors Permission Set", sessiontime: "PT9H", role_arn: "arn:aws:iam::aws:policy/SecurityAudit"}
+  - {name: "TekPossibleFinance", description: "TekPossible Accounting Permission Set", sessiontime: "PT9H", role_arn: "arn:aws:iam::aws:policy/job-function/Billing"}
