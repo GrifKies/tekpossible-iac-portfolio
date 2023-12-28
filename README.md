@@ -1,4 +1,4 @@
-# TekPossible Networks (Example IaC Protfolio)
+# TekPossible Networks (Example IaC Portfolio)
 Fake Defense Contractor Cloud Deploy, Maintenance, Auditing, and Devops Scripts
 
 **NOTE: This Project has no warranty, and is for educational/practice purposes only. It is definitely a work in progress. If something doesn't work, or you want to ask for a feature, feel free to open an issue.**
