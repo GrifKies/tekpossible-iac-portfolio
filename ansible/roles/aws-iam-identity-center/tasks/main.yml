@@ -1,0 +1,16 @@
+---
+
+- name: Ensure AWS CLI is authenticated
+  copy:
+    dest: ~/.aws/credentials
+    content: |
+      [default]
+      aws_access_key_id = {{ aws_access_key }}
+      aws_secret_access_key = {{ aws_secret_access_key }}
+
+
+- name: AWS IAM-IC Group Creation via AWS CLI
+  shell:
+    cmd: |
+      aws identitystore create-group --identity-store-id='{{ aws_iam_ic_idstore_id }}' --display-name='{{ item }}'
+  loop: "{{ aws_iam_ic_groups }}"

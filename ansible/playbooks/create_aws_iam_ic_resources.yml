@@ -1,0 +1,7 @@
+---
+
+- name: Create IAM IC Groups for TekPossible
+  hosts: 'local'
+  connection: local
+  roles:
+    - aws-iam-identity-center 

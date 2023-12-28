@@ -1,0 +1,9 @@
+# AWS IAM Identity Center Groupi
+aws_iam_ic_idstore_id: "d-9a670fab47"
+aws_iam_ic_arn: 'arn:aws:sso:::instance/ssoins-6684ee03906c3223'
+aws_iam_ic_groups: 
+  - "TekPossible Administrators"
+  - "TekPossible Auditors"
+  - "TekPossible Bursars"
+  - "TekPossible Developers - GEODE"
+  - "TekPossible Developers - GLOBALGRIFFIN"
