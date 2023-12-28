@@ -21,9 +21,9 @@ At the moment, here are the planned or already implemented features of the TekPo
 11. Automation for Creating STIG compliant RHEL instances as AMIs for the base of all deployed EC2 instances
 12. Automation for Routine Configuration enforcing via puppet, ansibble and cloudformation resources
 
-## Prequesties (So Far)
+## Prerequisites  (So Far)
 User must have a valid AWS root account and be able to create the following prior to running automation
-1. STS Static Credentials with AdministratorAcess IAM Role
-2. AWS Organization
-3. AWS IAM Identity Center and Identity Store
+1. STS Static Credentials with AdministratorAccess IAM Role
+2. Create an AWS Organization
+3. Create an AWS IAM Identity Center and its associated Identity Store
 
