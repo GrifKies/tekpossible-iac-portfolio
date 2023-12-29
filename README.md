@@ -25,7 +25,7 @@ At the moment, here are the planned or already implemented features of the TekPo
 
 ## Prerequisites  (So Far)
 User must have a valid AWS root account and be able to create the following prior to running automation
-1. STS Static Credentials with AdministratorAccess IAM Role
+1. IAM User with Access Key and AdministratorAccess IAM Permission Policy
 2. Create an AWS Organization
 3. Create an AWS IAM Identity Center and its associated Identity Store
 
