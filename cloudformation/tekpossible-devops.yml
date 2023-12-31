@@ -1,18 +1,38 @@
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
+  # TODO: We need to create IAM roles for codebuild,cloudformation,codedeploy, and the codepipeline itself. Maybe we do ABAC stuff?
 
-TekPossibleIACPipelineStorage:
-  Type: AWS::S3::Bucket
-  Properties: 
-    VersioningConfiguration:
-      Status: Enabled
-    BucketName: tekpossible-iac-pipeline-storage
+  TekPossibleIACPipelineStorage:
+    Type: AWS::S3::Bucket
+    Properties: 
+      VersioningConfiguration:
+        Status: Enabled
+      BucketName: tekpossible-iac-pipeline-storage
 
   TekPossibleIACRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
       RepositoryDescription: TekPossible Infrastructure as Code
-      RepositoryName: tekpossible-iac # remote url for iam ic: codecommit::us-east-2://tekpossible-iac
+      RepositoryName: tekpossible-iac # remote url for iam ic (federated) users: codecommit::us-east-2://tekpossible-iac
+  
+  TekPossibleIaCCodeBuildProject:
+    Type: 
+    Properties:
+      Name: TekPossibleIaCCodeBuildProject
+      BadgeEnabled: true
+      Cache: false # This is a dangerous game, so I am disabling cache for safety reasons
+      ConcurrentBuildLimit: 5
+      Description: TekPossible IaC Project Test Script
+      ServiceRole: <CREATE_THIS>
+      Visibility: PRIVATE # Need to know only for the build results - I am going to try to add some sast stuff to the linter as well.
+      Environment:
+        Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0" # TODO: Parameterize this bad boi
+        ComputeType: BUILD_GENERAL1_SMALL # TODO: Parameterize this bad boi
+        Type: LINUX_CONTAINER
+      Source:
+        Type: CODEPIPELINE
+      Artfacts:
+        Type: CODEPIPELINE # We will see if this works - not sure since techincally we are creating a standalone codebuild deployment
 
   TekPossibleIACPipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -33,16 +53,48 @@ TekPossibleIACPipelineStorage:
                 Version: 1
                 Provider: CodeCommit
               OutputArtifacts:
-                - Name: SourceOutput
+                - Name: TekPossibleIaCSource
               Configuration:
                 BranchName: main
                 RepositoryName: !GetAtt TekPossibleIACRepo.Name
-                PollForSourceChanges: true
+                PollForSourceChanges: false
               RunOrder: 1
-          # Source
-          # Test/Lint
-          # Deploy/Create Green
-          # Approval 
-          # Deploy Blue
+
+        - Name: Test
+          Actions:
+            - Name: LintSASTAction
+              Category: Test 
+              Owner: AWS
+              Version: 1
+              Provider: CodeBuild
+          InputArtifacts: 
+            - Name: TekPossibleIaCSource
+          Configuration:
+            BatchEnabled: false # Only one build per container - this is for ansible purposes
+            ProjectName: !Ref TekPossibleIaCCodeBuildProject
+          RunOrder: 1
+        # - PUSH TO GREEN
+        - name: Approval
+          Actions:
+            - Name: ManualApprovalBeforeDeploy
+              Category: Approval
+              Owner: AWS
+              Version: 1
+              Provider: Manual
+              Configuration: 
+                NotificationArn: "arn:aws:sns:us-west-2:12345EXAMPLE:Notification" # TOOD: Create a real ARN for SNS and put that here instead  - this will be fun.
+
+
+
+          # Source (DONE)
+          # Test/Lint (ansible/cfn/sast for iac checks)(ALMOST DONE)
+          # Deploy/Create Green Stack
+          #  a ) delete any cfn stack tagged as green deployment
+          #  b) create the green stack with cfn
+          #  c) deploy software/iac changes to the stack via codedeploy
+          # Approval (manual step)(ALMOST DONE)
+          # Push straight to prod
+          #  a) ensure green stack is healthy, and is attached to ELB
+          #  b) delete blue stack post health checks 
       RestartExecutionOnUpdate: true | false
       DisableInboundStageTransitions: 
