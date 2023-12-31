@@ -1,1 +1,48 @@
-{}
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+
+TekPossibleIACPipelineStorage:
+  Type: AWS::S3::Bucket
+  Properties: 
+    VersioningConfiguration:
+      Status: Enabled
+    BucketName: tekpossible-iac-pipeline-storage
+
+  TekPossibleIACRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: TekPossible Infrastructure as Code
+      RepositoryName: tekpossible-iac # remote url for iam ic: codecommit::us-east-2://tekpossible-iac
+
+  TekPossibleIACPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: TekPossibleIACPipeline
+      PipelineType: V2
+      RoleArn: 
+      ArtifactStore:
+        Type: S3
+        Location: !Ref TekPossibleIACPipelineStorage
+      Stages: 
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                BranchName: main
+                RepositoryName: !GetAtt TekPossibleIACRepo.Name
+                PollForSourceChanges: true
+              RunOrder: 1
+          # Source
+          # Test/Lint
+          # Deploy/Create Green
+          # Approval 
+          # Deploy Blue
+      RestartExecutionOnUpdate: true | false
+      DisableInboundStageTransitions: 

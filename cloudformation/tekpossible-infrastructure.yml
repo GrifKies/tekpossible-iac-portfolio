@@ -83,7 +83,7 @@ Resources:
   TekPossibleNATGW:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt TekPossibleNATGWEIP.AllocationId # WACK
+      AllocationId: !GetAtt TekPossibleNATGWEIP.AllocationId
       ConnectivityType: public
       SubnetId: !Ref TekPossibleProduction
       Tags:
