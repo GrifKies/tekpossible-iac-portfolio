@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - pip install cfn-lint ansible-core ansible-lint
+      - wget https://github.com/Checkmarx/kics/releases/download/v1.3.2/kics_1.3.2_linux_x64.tar.gz
+      - tar -xvf kics_1.3.2_linux_x64.tar.gz
+      - echo "LINT/SAST Dependencies installed"
+  pre_build:
+    commands:
+      - echo "Linting cloudformation code..."
+      - find -iwholename "./cloudformation/*.yml" -exec cfn-lint -t {} -b --ignore-checks W \;
+      - echo "Linting ansible code..."
+      - cd ./ansible
+      - cd ./ansible
+      - ansible-lint --profile min 
+      - echo "Running SAST on both cloudformation and ansible..."
+      - ./kics scan -p ./ --fail-on "high,medium"
+      - echo 'Linting and SAST Passed!'
+      

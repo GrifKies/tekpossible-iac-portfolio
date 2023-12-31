@@ -9,6 +9,20 @@ Resources:
         Status: Enabled
       BucketName: tekpossible-iac-pipeline-storage
 
+  TekPossibleIaCApprovalSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: TekPossible IaC Approval
+      TopicName: TekPossibleIaCApproval
+
+  TekPossibleIaCApprovalSNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref TekPossibleIaCApprovalSNS
+      Protocol: email
+      Endpoint: tech-leads@tekpossible.com # TODO: Remove the static reference for this via parameters
+
+
   TekPossibleIACRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
@@ -16,11 +30,12 @@ Resources:
       RepositoryName: tekpossible-iac # remote url for iam ic (federated) users: codecommit::us-east-2://tekpossible-iac
   
   TekPossibleIaCCodeBuildProject:
-    Type: 
+    Type: AWS::CodeBuild::Project
     Properties:
       Name: TekPossibleIaCCodeBuildProject
       BadgeEnabled: true
-      Cache: false # This is a dangerous game, so I am disabling cache for safety reasons
+      Cache:
+        Type: NO_CACHE # Cache is a dangerous game - I'd rather take the 5 minutes to install the tools than break stuff
       ConcurrentBuildLimit: 5
       Description: TekPossible IaC Project Test Script
       ServiceRole: <CREATE_THIS>
@@ -31,7 +46,7 @@ Resources:
         Type: LINUX_CONTAINER
       Source:
         Type: CODEPIPELINE
-      Artfacts:
+      Artifacts:
         Type: CODEPIPELINE # We will see if this works - not sure since techincally we are creating a standalone codebuild deployment
 
   TekPossibleIACPipeline:
@@ -39,7 +54,7 @@ Resources:
     Properties:
       Name: TekPossibleIACPipeline
       PipelineType: V2
-      RoleArn: 
+      RoleArn: <CREATE_THIS>
       ArtifactStore:
         Type: S3
         Location: !Ref TekPossibleIACPipelineStorage
@@ -63,38 +78,37 @@ Resources:
         - Name: Test
           Actions:
             - Name: LintSASTAction
-              Category: Test 
-              Owner: AWS
-              Version: 1
-              Provider: CodeBuild
-          InputArtifacts: 
-            - Name: TekPossibleIaCSource
-          Configuration:
-            BatchEnabled: false # Only one build per container - this is for ansible purposes
-            ProjectName: !Ref TekPossibleIaCCodeBuildProject
-          RunOrder: 1
-        # - PUSH TO GREEN
-        - name: Approval
+              ActionTypeId:
+                Category: Test 
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts: 
+                - Name: TekPossibleIaCSource
+              Configuration:
+                BatchEnabled: false # Only one build per container - just in case you know
+                ProjectName: !Ref TekPossibleIaCCodeBuildProject
+              RunOrder: 1
+        # - PUSH TO GREEN (TODO)
+        - Name: Approval
           Actions:
             - Name: ManualApprovalBeforeDeploy
-              Category: Approval
-              Owner: AWS
-              Version: 1
-              Provider: Manual
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Version: 1
+                Provider: Manual
               Configuration: 
-                NotificationArn: "arn:aws:sns:us-west-2:12345EXAMPLE:Notification" # TOOD: Create a real ARN for SNS and put that here instead  - this will be fun.
-
-
-
+                NotificationArn: !Ref TekPossibleIaCApprovalSNS # TODO: Either get a static toll-free number or do this the email way 
+          # - PUSH TO BLUE
           # Source (DONE)
           # Test/Lint (ansible/cfn/sast for iac checks)(ALMOST DONE)
           # Deploy/Create Green Stack
           #  a ) delete any cfn stack tagged as green deployment
           #  b) create the green stack with cfn
           #  c) deploy software/iac changes to the stack via codedeploy
-          # Approval (manual step)(ALMOST DONE)
+          # Approval (manual step)(DONE)
           # Push straight to prod
           #  a) ensure green stack is healthy, and is attached to ELB
           #  b) delete blue stack post health checks 
-      RestartExecutionOnUpdate: true | false
-      DisableInboundStageTransitions: 
+      RestartExecutionOnUpdate: false # Don't restart pipeline on new commit; it should just make a new pipeline for that in the queue
