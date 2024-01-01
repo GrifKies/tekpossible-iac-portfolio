@@ -15,6 +15,7 @@ phases:
       - cd ./ansible
       - ansible-lint --profile min 
       - echo "Running SAST on both cloudformation and ansible..."
+      - cd ..
       - ./kics scan -p ./ --fail-on "high,medium"
       - echo 'Linting and SAST Passed!'
       
