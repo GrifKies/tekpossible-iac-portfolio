@@ -12,7 +12,6 @@ phases:
       - find -iwholename "./cloudformation/*.yml" -exec cfn-lint -t {} -b --ignore-checks W \;
       - echo "Linting ansible code..."
       - cd ./ansible
-      - cd ./ansible
       - ansible-lint --profile min 
       - echo "Running SAST on both cloudformation and ansible..."
       - ./kics scan -p ./ --fail-on "high,medium"
