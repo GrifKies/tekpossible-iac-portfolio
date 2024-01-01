@@ -95,7 +95,7 @@ Resources:
               Configuration:
                 BranchName: main
                 RepositoryName: !GetAtt TekPossibleIACRepo.Name
-                PollForSourceChanges: false
+                PollForSourceChanges: true
               RunOrder: 1
 
         - Name: Test
