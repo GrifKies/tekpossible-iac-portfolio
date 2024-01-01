@@ -3,9 +3,11 @@ phases:
   install:
     commands:
       - echo "Installing lint/sast software..."
-      - pip install -q cfn-lint ansible-core ansible-lint
-      - wget -q https://github.com/Checkmarx/kics/releases/download/v1.3.2/kics_1.3.2_linux_x64.tar.gz
-      - tar -xf kics_1.3.2_linux_x64.tar.gz
+      - pip install -q cfn-lint ansible-core ansible-lint ansible-lint-to-junit-xml
+      - yum install -y npm
+      - npm install -g sarif-junit@latest
+      - wget -q https://github.com/Checkmarx/kics/releases/download/v1.5.0/kics_1.5.0_linux_x64.tar.gz
+      - tar -xf kics_1.5.0_linux_x64.tar.gz
       - echo "LINT/SAST Dependencies installed"
   pre_build:
     commands:
@@ -13,9 +15,17 @@ phases:
       - find -iwholename "./cloudformation/*.yml" -exec cfn-lint -t {} -b --ignore-checks W \;
       - echo "Linting ansible code..."
       - cd ./ansible
-      - ansible-lint --profile min 
+      - ansible-lint -f sarif -p ./* --profile production -w metadata,command-shell,formatting,idiom,core,unpredictability,yaml > results.json
+      - sarif-junit -i results.json -o ../results-ansible-lint.xml
       - echo "Running SAST on both cloudformation and ansible..."
       - cd ..
-      - ./kics scan -p ./  --ignore-on-exit all
+      - ./kics scan -p ./  --ignore-on-exit all --report-formats junit --no-progress -o ./
       - echo 'Linting and SAST Passed!'
-      
+
+reports:
+    tekpossible-kics-report:
+      files:
+        - junit-results.xml
+    tekpossible-ansible-lint-report:
+      files:
+        - results-ansible-lint.xml
